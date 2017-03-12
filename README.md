@@ -76,13 +76,13 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
 var NetworkInfo = require('react-native-network-info');
 
 // Get SSID
-NetworkInfo.getSSID(ssid => {
-  console.log(ssid);
+NetworkInfo.getSSID().then((ssid)=>{
+    console.log(ssid);
 });
 
 // Get Local IP
-NetworkInfo.getIPAddress(ip => {
-  console.log(ip);
+NetworkInfo.getIPAddress().then((ip)=>{
+    console.log(ip);
 });
 
 ```
