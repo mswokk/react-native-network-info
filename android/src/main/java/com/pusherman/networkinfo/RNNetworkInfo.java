@@ -1,6 +1,8 @@
 package com.pusherman.networkinfo;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
@@ -19,10 +21,13 @@ public class RNNetworkInfo extends ReactContextBaseJavaModule {
     public static final String TAG = "RNNetworkInfo";
 
     WifiManager mWifiManager;
+    private final ConnectivityManager mConnManager;
 
     public RNNetworkInfo(ReactApplicationContext reactContext) {
         super(reactContext);
-        mWifiManager = (WifiManager) reactContext.getSystemService(Context.WIFI_SERVICE);
+        Context context = reactContext.getApplicationContext();
+        mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        mConnManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     @Override
@@ -32,21 +37,37 @@ public class RNNetworkInfo extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getSSID(final Promise promise) {
-        WifiInfo info = mWifiManager.getConnectionInfo();
+        if (isConnectedToWifi()) {
+            WifiInfo info = mWifiManager.getConnectionInfo();
 
-        // This value should be wrapped in double quotes, so we need to unwrap it.
-        String ssid = info.getSSID();
-        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
-            ssid = ssid.substring(1, ssid.length() - 1);
+            // This value should be wrapped in double quotes, so we need to unwrap it.
+            String ssid = info.getSSID();
+            if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                ssid = ssid.substring(1, ssid.length() - 1);
+            }
+            promise.resolve(ssid);
+        } else {
+            promise.resolve(null);
         }
+    }
 
-        promise.resolve(ssid);
+    private boolean isConnectedToWifi() {
+        NetworkInfo mWifi = mConnManager.getActiveNetworkInfo();
+        if (mWifi != null) {
+            return mWifi.getType() == ConnectivityManager.TYPE_WIFI && mWifi.isConnected();
+        } else {
+            return false;
+        }
     }
 
     @ReactMethod
     public void getBSSID(final Promise promise) {
-        WifiInfo info = mWifiManager.getConnectionInfo();
-        promise.resolve(info.getBSSID());
+        if (isConnectedToWifi()) {
+            WifiInfo info = mWifiManager.getConnectionInfo();
+            promise.resolve(info.getBSSID());
+        } else {
+            promise.resolve(null);
+        }
     }
 
     @ReactMethod
