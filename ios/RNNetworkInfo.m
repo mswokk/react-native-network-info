@@ -17,7 +17,9 @@
 
 RCT_EXPORT_MODULE();
 
-RCT_EXPORT_METHOD(getSSID:(RCTResponseSenderBlock)callback)
+RCT_REMAP_METHOD(getSSID,
+                 resolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSArray *interfaceNames = CFBridgingRelease(CNCopySupportedInterfaces());
     NSLog(@"%s: Supported interfaces: %@", __func__, interfaceNames);
@@ -34,10 +36,12 @@ RCT_EXPORT_METHOD(getSSID:(RCTResponseSenderBlock)callback)
         }
     }
     
-    callback(@[SSID]);
+    resolve(@[SSID]);
 }
 
-RCT_EXPORT_METHOD(getIPAddress:(RCTResponseSenderBlock)callback)
+RCT_REMAP_METHOD(getIPAddress,
+                 resolver2:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *address = @"error";
     
@@ -60,7 +64,7 @@ RCT_EXPORT_METHOD(getIPAddress:(RCTResponseSenderBlock)callback)
     }
     
     freeifaddrs(interfaces);
-    callback(@[address]);
+    resolve(@[address]);
 }
 
 @end
