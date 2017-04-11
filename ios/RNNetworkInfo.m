@@ -17,27 +17,47 @@
 
 RCT_EXPORT_MODULE();
 
-RCT_REMAP_METHOD(getSSID,
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
-{
++ (NSDictionary *) getNetworkInterfaceInfo {
     NSArray *interfaceNames = CFBridgingRelease(CNCopySupportedInterfaces());
     NSLog(@"%s: Supported interfaces: %@", __func__, interfaceNames);
     
     NSDictionary *SSIDInfo;
-    NSString *SSID = @"error";
-    
     for (NSString *interfaceName in interfaceNames) {
         SSIDInfo = CFBridgingRelease(CNCopyCurrentNetworkInfo((__bridge CFStringRef)interfaceName));
-        
         if (SSIDInfo.count > 0) {
-            SSID = SSIDInfo[@"SSID"];
-            break;
+            return SSIDInfo;
         }
     }
     
-    resolve(@[SSID]);
+    return nil;
 }
+
+RCT_REMAP_METHOD(getSSID,
+                 resolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+    id netInfo = [RNNetworkInfo getNetworkInterfaceInfo];
+    id SSID = @"NoConnection";
+    if(netInfo != nil){
+        SSID = netInfo[@"SSID"];
+    }
+    resolve(SSID);
+}
+
+
+RCT_REMAP_METHOD(getBSSID,
+                 getBSSIDResolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+
+    id netInfo = [RNNetworkInfo getNetworkInterfaceInfo];
+    id BSSID = @"NoConnection";
+    if(netInfo != nil){
+        BSSID = netInfo[@"BSSID"];
+    }
+    resolve(BSSID);
+}
+
 
 RCT_REMAP_METHOD(getIPAddress,
                  resolver2:(RCTPromiseResolveBlock)resolve
@@ -68,4 +88,3 @@ RCT_REMAP_METHOD(getIPAddress,
 }
 
 @end
-
